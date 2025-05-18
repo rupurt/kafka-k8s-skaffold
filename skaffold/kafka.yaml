@@ -1,0 +1,61 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: kafka
+deploy:
+  helm:
+    hooks:
+      before:
+      - host:
+          command:
+          - 'bash'
+          - '-c'
+          - 'helm repo add strimzi https://strimzi.io/charts'
+    releases:
+    - name: strimzi-kafka-operator
+      remoteChart: strimzi/strimzi-kafka-operator
+      namespace: kafka-k8s-skaffold
+      createNamespace: true
+    - name: kafka-cluster
+      chartPath: helm/kafka/kafka_cluster
+      namespace: kafka-k8s-skaffold
+      createNamespace: true
+    - name: kafka-proxy
+      chartPath: helm/kafka/kafka_proxy
+      namespace: kafka-k8s-skaffold
+      createNamespace: true
+    - name: redpanda-console
+      chartPath: helm/kafka/redpanda_console
+      namespace: kafka-k8s-skaffold
+      createNamespace: true
+portForward:
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: kafka-k8s-skaffold
+  address: 0.0.0.0
+  port: 29094
+  localPort: 29094
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: kafka-k8s-skaffold
+  address: 0.0.0.0
+  port: 29095
+  localPort: 29095
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: kafka-k8s-skaffold
+  address: 0.0.0.0
+  port: 29096
+  localPort: 29096
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: kafka-k8s-skaffold
+  address: 0.0.0.0
+  port: 29097
+  localPort: 29097
+- resourceType: service
+  resourceName: redpanda-console
+  namespace: kafka-k8s-skaffold
+  address: 0.0.0.0
+  port: 8080
+  localPort: 8080
