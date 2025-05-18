@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+source $SCRIPTS/common.sh
+
+# @cmd Ensures configuration has been initialized
+setup() {
+	mkdir -p $LOCAL
+}
+
+# @cmd Manage local k3d cluster
+k3d() { :; }
+
+# @cmd Create k3d cluster
+k3d::create() {
+	runp """
+  k3d cluster create kafka-k8s-skaffold \
+    --image rancher/k3s:v1.31.4-k3s1 \
+    --k3s-arg '--disable=traefik@server:*' \
+    --port '80:80@loadbalancer'
+  """
+}
+
+# @cmd Delete k3d cluster
+k3d::delete() {
+	runp "k3d cluster delete kafka-k8s-skaffold"
+}
+
+# @cmd Start k3d cluster
+k3d::start() {
+	runp "k3d cluster start kafka-k8s-skaffold"
+}
+
+# @cmd Stop k3d cluster
+k3d::stop() {
+	runp "k3d cluster stop kafka-k8s-skaffold"
+}
+
+# @cmd Continuous development for kubernetes
+skaffold() { :; }
+
+# @cmd Continuous development for all pipelines
+skaffold::all() { :; }
+
+# @cmd Run all pipelines once
+skaffold::all::run() {
+	runp """
+  skaffold run \
+    --port-forward=user \
+    -f skaffold.yaml
+  """
+}
+
+# @cmd Generate manifests for all pipelines
+skaffold::all::render() {
+	runp """
+  skaffold render \
+    -f skaffold.yaml
+  """
+}
+
+# @cmd Delete resources deployed by all pipelines
+skaffold::all::delete() {
+	runp """
+  skaffold delete \
+    -f skaffold.yaml
+  """
+}
+
+# @cmd Continuous development for o11y pipeline
+skaffold::o11y() { :; }
+
+# @cmd Run o11y pipeline once
+skaffold::o11y::run() {
+	runp """
+  skaffold run \
+    --port-forward=user \
+    -f skaffold/o11y.yaml
+  """
+}
+
+# @cmd Generate manifests for o11y pipeline
+skaffold::o11y::render() {
+	runp """
+  skaffold render \
+    -f skaffold/o11y.yaml
+  """
+}
+
+# @cmd Delete resources deployed by o11y pipeline
+skaffold::o11y::delete() {
+	runp """
+  skaffold delete \
+    -f skaffold/o11y.yaml
+  """
+}
+
+# @cmd Continuous development for kafka pipeline
+skaffold::kafka() { :; }
+
+# @cmd Run kafka pipeline once
+skaffold::kafka::run() {
+	runp """
+  skaffold run \
+    --port-forward=user \
+    -f skaffold/kafka.yaml
+  """
+}
+
+# @cmd Generate manifests for kafka pipeline
+skaffold::kafka::render() {
+	runp """
+  skaffold render \
+    -f skaffold/kafka.yaml
+  """
+}
+
+# @cmd Delete resources deployed by kafka pipeline
+skaffold::kafka::delete() {
+	runp """
+  skaffold delete \
+    -f skaffold/kafka.yaml
+  """
+}
+
+# Parse args and apply them to the specified function
+dev --ensure-devshell "$@"
